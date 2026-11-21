@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎤 双模式变声器 · 权限引导版</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(circle at 15% 0%,#1e1b3a,#08060f 80%);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    font-family:'Segoe UI',Roboto,system-ui,sans-serif;padding:14px;color:#f3efff;
+  }
+  .app{
+    max-width:1080px;width:100%;background:rgba(14,10,26,.92);
+    backdrop-filter:blur(16px);border-radius:44px;padding:26px 24px;
+    box-shadow:0 50px 90px -25px #000,inset 0 1px 1px rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.07);
+  }
+  h1{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    font-size:1.85rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;
+    background:linear-gradient(120deg,#ffd166,#ff5d8f,#a78bfa,#4cc9f0);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 4px 12px #ff5d8f40);
+  }
+  .sub{text-align:center;color:#9a92b8;font-size:.85rem;margin-bottom:18px;
+    padding-bottom:12px;border-bottom:1px dashed #362c52;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{
+    background:#0e0a1a;border:1px solid #2a2144;color:#a49ac8;
+    padding:10px 20px;border-radius:60px;font-size:.88rem;cursor:pointer;
+    font-weight:700;transition:.15s;flex:1;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .tab.active{background:#221a44;border-color:#a78bfa;color:#fff;
+    box-shadow:0 0 0 2px #a78bfa40}
+  .tab:hover{background:#1a1232}
+
+  .panel{display:none}
+  .panel.active{display:block}
+
+  .input-area{
+    width:100%;background:#070510;border:1px solid #342a4e;
+    border-radius:28px;padding:20px 22px;margin-bottom:16px;
+    box-shadow:inset 0 8px 18px #000000c0, 0 2px 0 rgba(255,255,255,.03);
+    transition:.2s;
+  }
+  .input-area:focus-within{
+    border-color:#a78bfa;
+    box-shadow:0 0 0 3px #a78bfa40, inset 0 8px 18px #000000c0;
+  }
+  .input-area textarea{
+    width:100%;background:transparent;border:none;outline:none;
+    resize:vertical;min-height:120px;font-size:1.08rem;color:#f3efff;
+    font-family:inherit;line-height:1.6;padding:0;margin:0;
+  }
+  .input-area textarea::placeholder{color:#4a4266;font-style:italic}
+  .input-area .hint{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;padding-top:10px;border-top:1px dashed #2a2144;
+    font-size:.7rem;color:#5a5280;
+  }
+  .input-area .hint .lang-tip{color:#7c72a8}
+  .input-area .hint .char-count{color:#5a5280}
+
+  .row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 14px}
+  .btn{
+    background:#1a1430;border:1px solid #3d3060;color:#d8d0f5;font-weight:700;
+    padding:12px 22px;border-radius:60px;font-size:.92rem;cursor:pointer;
+    transition:.15s;display:inline-flex;align-items:center;justify-content:center;
+    gap:7px;box-shadow:0 6px 14px #00000060;flex:1 1 auto;
+  }
+  .btn:hover:not(:disabled){background:#2a1f4a;border-color:#7c6cc4;color:#fff;transform:translateY(-2px)}
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn-main{background:linear-gradient(145deg,#ff5d8f,#c9184a);border-color:#ff8fab;color:#fff;
+    box-shadow:0 12px 26px -8px #c9184a90}
+  .btn-main:hover:not(:disabled){background:linear-gradient(145deg,#ff709c,#e01b5a)}
+  .btn-stop{background:#3a1220;border-color:#8a2a4a;color:#ffb3c8}
+  .btn-stop:hover:not(:disabled){background:#581b30;border-color:#c94a72}
+  .btn-perm{
+    background:linear-gradient(145deg,#4a3a7a,#2d1f52);
+    border-color:#8a6ce0;color:#d8c8ff;text-decoration:none;
+    box-shadow:0 8px 18px -6px #6a4ac080;flex:1 1 auto;
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 22px;border-radius:60px;font-size:.92rem;font-weight:700;
+    cursor:pointer;transition:.15s;gap:7px;
+  }
+  .btn-perm:hover{background:linear-gradient(145deg,#5a4a90,#3d2f62);
+    border-color:#b09cff;color:#fff;transform:translateY(-2px)}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+    gap:9px;max-height:360px;overflow-y:auto;padding-right:4px;margin:4px 0;
+  }
+  .grid::-webkit-scrollbar{width:6px}
+  .grid::-webkit-scrollbar-thumb{background:#3d3060;border-radius:10px}
+  .card{
+    background:#0e0a1a;border:1px solid #261d40;border-radius:20px;
+    padding:11px 3px 9px;text-align:center;cursor:pointer;transition:.12s;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    box-shadow:0 8px 14px #00000050;user-select:none;
+  }
+  .card:hover{background:#1a1232;border-color:#6d5aa8;transform:translateY(-3px)}
+  .card.active{background:#221a44;border-color:#a78bfa;
+    box-shadow:0 0 0 2px #a78bfa70,0 10px 20px #00000080}
+  .emoji{font-size:1.6rem;line-height:1.2;filter:drop-shadow(0 3px 3px #00000080)}
+  .name{font-size:.6rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;opacity:.9}
+
+  .status{
+    margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px;
+    background:#070510;padding:12px 18px;border-radius:100px;
+    border:1px solid #2a2144;font-size:.88rem;color:#a49ac8;transition:.2s;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;background:#4b3f72;
+    box-shadow:0 0 8px #4b3f72;transition:.2s}
+  .status.on .dot{background:#5affa0;box-shadow:0 0 16px #5affa0;animation:pulse .8s infinite alternate}
+  .status.err .dot{background:#ff5d8f;box-shadow:0 0 16px #ff5d8f}
+  @keyframes pulse{from{opacity:1;transform:scale(1)}to{opacity:.4;transform:scale(1.35)}}
+
+  .meter{height:6px;background:#0a0d16;border-radius:10px;overflow:hidden;margin-top:12px;
+    border:1px solid #2a2144;}
+  .meter-inner{height:100%;width:0%;background:linear-gradient(90deg,#5affa0,#ffd166,#ff5d8f);
+    border-radius:10px;transition:width .05s;}
+
+  .note{text-align:center;font-size:.68rem;color:#4a3f6b;margin-top:12px}
+
+  .lang-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+  .lang-row label{font-size:.85rem;color:#a49ac8;white-space:nowrap}
+  select{
+    background:#0e0a1a;border:1px solid #342a4e;color:#f3efff;
+    padding:10px 16px;border-radius:60px;font-size:.9rem;outline:none;
+    font-family:inherit;cursor:pointer;flex:1;min-width:140px;
+  }
+  select:focus{border-color:#a78bfa}
+
+  .diag{
+    margin-top:12px;padding:14px 18px;background:#0a0d16;border-radius:20px;
+    border:1px solid #3a2a4e;font-size:.78rem;color:#b8a8d8;
+    line-height:1.7;display:none;
+  }
+  .diag.show{display:block}
+  .diag .diag-title{font-weight:700;color:#ffd166;margin-bottom:6px}
+  .diag ul{margin:6px 0 0 18px}
+  .diag li{margin-bottom:4px}
+  .diag code{background:#1a1430;padding:2px 6px;border-radius:6px;color:#a78bfa;font-size:.75rem}
+
+  .mic-check{
+    display:flex;align-items:center;gap:8px;padding:8px 14px;
+    background:#0a0d16;border-radius:14px;margin-bottom:12px;
+    font-size:.78rem;border:1px solid #2a2144;flex-wrap:wrap;
+  }
+  .mic-check .badge{
+    padding:3px 10px;border-radius:20px;font-weight:700;font-size:.7rem;
+    white-space:nowrap;
+  }
+  .badge-ok{background:#1a4a2a;color:#5affa0;border:1px solid #2a6a3a}
+  .badge-err{background:#4a1a2a;color:#ff5d8f;border:1px solid #6a2a3a}
+  .badge-warn{background:#4a3a1a;color:#ffd166;border:1px solid #6a5a2a}
+  .badge-info{background:#1a2a4a;color:#7ad0ff;border:1px solid #2a4a6a}
+
+  /* 权限引导卡片 */
+  .perm-guide{
+    margin-top:12px;padding:16px 18px;border-radius:22px;
+    background:linear-gradient(135deg,#1a1030,#221a44);
+    border:1px solid #6a4ac0;display:none;
+    animation: fadeIn .3s ease;
+  }
+  .perm-guide.show{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .perm-guide .perm-title{
+    font-size:.9rem;font-weight:800;color:#d8c8ff;margin-bottom:8px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .perm-guide .perm-desc{
+    font-size:.78rem;color:#b8a8d8;line-height:1.6;margin-bottom:12px;
+  }
+  .perm-guide .perm-steps{
+    background:#0a0d16;border-radius:14px;padding:10px 14px;
+    font-size:.74rem;color:#a49ac8;line-height:1.8;margin-bottom:12px;
+    border:1px solid #2a2144;
+  }
+  .perm-guide .perm-steps strong{color:#a78bfa}
+  .perm-guide .perm-actions{display:flex;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎤 双模式变声器</h1>
+  <div class="sub">麦克风实时变声 + 文字朗读 · 20种 DSP 效果</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="mic">🎙️ 麦克风实时变声</div>
+    <div class="tab" data-tab="tts">🔊 文字朗读</div>
+  </div>
+
+  <!-- ============ 麦克风面板 ============ -->
+  <div id="panel-mic" class="panel active">
+    <div class="input-area">
+      <textarea id="micText" placeholder="在这里输入文字（选填，麦克风模式下不影响变声）…"></textarea>
+      <div class="hint">
+        <span class="lang-tip">🎙️ 说话即可听到变声效果，文字仅作备忘</span>
+        <span class="char-count" id="micCharCount">0 字</span>
+      </div>
+    </div>
+
+    <!-- 麦克风可用性检测 -->
+    <div class="mic-check" id="micCheck">
+      <span class="badge" id="micBadge">检测中…</span>
+      <span id="micCheckText">正在检测麦克风可用性…</span>
+    </div>
+
+    <!-- 权限引导卡片 -->
+    <div class="perm-guide" id="permGuide">
+      <div class="perm-title">🔐 需要麦克风权限</div>
+      <div class="perm-desc" id="permDesc">当前页面还没有获得麦克风权限，请按下方指引操作。</div>
+      <div class="perm-steps" id="permSteps">
+        <strong>方法一：</strong>点击浏览器地址栏左侧的 🔒 锁图标 → 网站设置 → 麦克风 → 允许<br>
+        <strong>方法二：</strong>如果之前拒绝过，请点击下方按钮打开浏览器设置页调整。
+      </div>
+      <div class="perm-actions">
+        <a class="btn-perm" id="permSettingsLink" href="#" target="_blank" rel="noopener">🔗 打开麦克风权限设置</a>
+        <button class="btn btn-sm" id="permRetryBtn" style="flex:0 1 auto;padding:12px 18px;font-size:.85rem">🔄 已授权，重试</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-main" id="micBtn">🎤 开启麦克风</button>
+      <button class="btn btn-stop" id="micStopBtn" disabled>⏹️ 关闭</button>
+    </div>
+
+    <div class="grid" id="micGrid"></div>
+    <div class="meter"><div class="meter-inner" id="meter"></div></div>
+
+    <div class="status" id="micStatus">
+      <span class="dot"></span>
+      <span id="micStatusText">点击开启麦克风，选择音色</span>
+    </div>
+
+    <div class="diag" id="micDiag"></div>
+
+    <div class="note">🎛️ 麦克风音频实时经过 DSP 处理，<strong>变声是真实的</strong></div>
+  </div>
+
+  <!-- ============ TTS 面板 ============ -->
+  <div id="panel-tts" class="panel">
+    <div class="input-area">
+      <textarea id="ttsText" placeholder="输入要朗读的文字…">你好世界，欢迎使用多语言变声朗读器，超级搞笑！</textarea>
+      <div class="hint">
+        <span class="lang-tip">🌐 支持中/英/日/韩/法/德/西/俄/阿/葡/意/泰/越/印</span>
+        <span class="char-count" id="ttsCharCount">0 字</span>
+      </div>
+    </div>
+
+    <div class="lang-row">
+      <label>目标语言：</label>
+      <select id="targetLang">
+        <option value="zh-CN">中文（简体）</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="pt">Português</option>
+        <option value="it">Italiano</option>
+        <option value="th">ไทย</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-main" id="speakBtn">🔊 翻译并朗读</button>
+      <button class="btn btn-stop" id="stopBtn">⏹️ 停止</button>
+    </div>
+
+    <div class="grid" id="ttsGrid"></div>
+
+    <div class="status" id="ttsStatus">
+      <span class="dot"></span>
+      <span id="ttsStatusText">就绪</span>
+    </div>
+
+    <div class="note">⚠️ TTS 模式仅调节 rate/pitch，效果有限；真变声请用麦克风模式</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  // ========== 标签切换 ==========
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.onclick = ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      $('panel-' + tab.dataset.tab).classList.add('active');
+    };
+  });
+
+  // ========== 字数统计 ==========
+  function bindCharCount(textareaId, countId){
+    const ta = $(textareaId), cnt = $(countId);
+    function update(){ cnt.textContent = ta.value.length + ' 字'; }
+    ta.addEventListener('input', update);
+    update();
+  }
+  bindCharCount('micText', 'micCharCount');
+  bindCharCount('ttsText', 'ttsCharCount');
+
+  // ============================================================
+  // 权限引导：生成「打开麦克风权限设置」链接
+  // ============================================================
+  // 不同浏览器进入站点麦克风设置的路径不同，这里生成最通用的 chrome://settings/content/microphone
+  // 注意：大多数浏览器不允许页面直接跳转到 chrome:// 等内部页面（安全限制），
+  // 所以点击后我们会尝试打开，同时给出手动步骤提示。
+  function getSettingsUrl(){
+    const ua = navigator.userAgent;
+    // Chrome / Edge 都可以打开 chrome://settings/content/microphone
+    if(/Edg\//.test(ua)) return 'edge://settings/content/microphone';
+    if(/Chrome\//.test(ua)) return 'chrome://settings/content/microphone';
+    if(/Firefox\//.test(ua)) return 'about:preferences#privacy';
+    if(/Safari\//.test(ua)) return 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone';
+    // 默认
+    return 'chrome://settings/content/microphone';
+  }
+
+  // 更新权限引导卡片的显示状态
+  function showPermGuide(show, desc, stepsHtml){
+    const guide = $('permGuide');
+    if(show){
+      guide.classList.add('show');
+      if(desc) $('permDesc').innerHTML = desc;
+      if(stepsHtml) $('permSteps').innerHTML = stepsHtml;
+    } else {
+      guide.classList.remove('show');
+    }
+  }
+
+  // 设置「打开麦克风权限设置」链接
+  function setupPermLink(){
+    const link = $('permSettingsLink');
+    const url = getSettingsUrl();
+    link.href = url;
+    // 尝试用 window.open 打开（有些浏览器允许从用户手势中打开设置页）
+    link.onclick = (e) => {
+      // 对于 chrome:// 这类内部页面，普通打开可能被拦截
+      // 我们仍然尝试打开，同时把 URL 显示在提示中方便用户手动复制
+      const ua = navigator.userAgent;
+      const isChromium = /Chrome\//.test(ua) || /Edg\//.test(ua);
+      if(isChromium && url.startsWith('chrome') || url.startsWith('edge')){
+        // 尝试直接跳转
+        try {
+          window.open(url, '_blank');
+        } catch(err) {}
+        // 同时给出手动指引
+        e.preventDefault();
+        showPermGuide(true,
+          '浏览器安全策略通常不允许网页直接跳转到设置页。请手动按以下步骤操作：',
+          '<strong>步骤：</strong>点击地址栏左侧的 🔒 锁图标 → 选择「网站设置」→ 找到「麦克风」→ 改为「允许」→ 刷新本页面。<br>' +
+          '<strong>或直接打开：</strong><code>' + url + '</code>（复制到地址栏打开）'
+        );
+        return false;
+      }
+      // 其他浏览器直接打开
+      return true;
+    };
+  }
+  setupPermLink();
+
+  // 重试按钮：用户可能在设置里授权后回到页面，点击重试
+  $('permRetryBtn').onclick = () => {
+    // 重新检测权限并尝试开启
+    refreshPermissionState().then(state => {
+      if(state === 'granted'){
+        showPermGuide(false);
+        $('micStatus').classList.remove('err');
+        $('micStatusText').textContent = '权限已授予，正在开启麦克风…';
+        startMic();
+      } else if(state === 'denied'){
+        $('micStatus').classList.add('err');
+        $('micStatusText').textContent = '权限仍被拒绝，请按上方指引修改';
+        showPermGuide(true);
+      } else {
+        // prompt 状态，直接尝试开启，会弹出权限询问
+        startMic();
+      }
+    });
+  };
+
+  // ============================================================
+  // 麦克风可用性检测
+  // ============================================================
+  async function refreshPermissionState(){
+    if(!navigator.permissions || !navigator.permissions.query){
+      return 'unknown';
+    }
+    try {
+      const result = await navigator.permissions.query({name:'microphone'});
+      return result.state; // 'granted' | 'denied' | 'prompt'
+    } catch(e) {
+      return 'unknown';
+    }
+  }
+
+  async function checkMicSupport(){
+    const badge = $('micBadge');
+    const text = $('micCheckText');
+    const diag = $('micDiag');
+    let ok = true;
+    let msgs = [];
+    let diagItems = [];
+
+    // 1. 安全上下文
+    const isSecure = window.isSecureContext === true;
+    const isFile = location.protocol === 'file:';
+    if(isFile){
+      ok = false;
+      msgs.push('❌ file:// 协议禁止麦克风');
+      diagItems.push('你正在用 <code>file://</code> 协议打开页面，浏览器安全策略会<strong>直接禁止</strong>麦克风访问。');
+      diagItems.push('解决办法：用本地服务器打开（如 VS Code Live Server），或部署到 <code>https://</code> 网站。');
+      showPermGuide(true,
+        '当前是 <code>file://</code> 协议，浏览器不允许使用麦克风。请用本地服务器打开后再试。',
+        '<strong>解决方案：</strong><br>1. 用 VS Code 的 Live Server 插件打开<br>2. 命令行运行 <code>python -m http.server</code> 后访问 <code>http://localhost:8000</code><br>3. 部署到 <code>https://</code> 网站'
+      );
+    } else if(!isSecure){
+      ok = false;
+      msgs.push('❌ 非安全上下文');
+      diagItems.push('当前协议是 <code>' + location.protocol + '</code>，不是安全上下文。麦克风 API 只在 <code>https://</code> 或 <code>http://localhost</code> 下可用。');
+    } else {
+      msgs.push('✅ 安全上下文正常');
+    }
+
+    // 2. API 存在性
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      ok = false;
+      msgs.push('❌ 浏览器不支持麦克风 API');
+      diagItems.push('浏览器不支持 <code>getUserMedia</code>，请更新到最新版 Chrome / Edge / Safari。');
+    } else {
+      msgs.push('✅ getUserMedia 可用');
+    }
+
+    // 3. 权限状态
+    const permState = await refreshPermissionState();
+    if(permState === 'denied'){
+      msgs.push('❌ 权限被拒绝');
+      showPermGuide(true,
+        '麦克风权限已被<strong>拒绝</strong>。你需要手动在浏览器设置里重新允许。',
+        '<strong>方法一：</strong>点击地址栏左侧的 🔒 锁图标 → 「网站设置」→ 找到「麦克风」→ 改为「允许」→ 刷新页面。<br>' +
+        '<strong>方法二：</strong>点击下方「打开麦克风权限设置」按钮，在设置页搜索「麦克风」，找到本网站并改为允许。'
+      );
+    } else if(permState === 'granted'){
+      msgs.push('✅ 权限已授予');
+      showPermGuide(false);
+    } else if(permState === 'prompt'){
+      msgs.push('ℹ️ 权限未询问');
+      showPermGuide(true,
+        '麦克风权限尚未询问。点击「开启麦克风」按钮，浏览器会弹出权限请求。',
+        '<strong>提示：</strong>点击「开启麦克风」后，浏览器地址栏下方会弹出权限询问，请选择「允许」。<br>' +
+        '如果之前误点了「阻止」，请按下方方法手动修改。'
+      );
+    }
+
+    // 4. 设备检测
+    if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices){
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = devices.filter(d=>d.kind === 'audioinput');
+        if(audioInputs.length === 0){
+          msgs.push('⚠️ 无音频输入设备');
+          diagItems.push('🎤 系统没有检测到任何麦克风。请检查硬件连接或系统声音设置。');
+        } else {
+          msgs.push('✅ 检测到 ' + audioInputs.length + ' 个音频输入设备');
+        }
+      } catch(e) {}
+    }
+
+    // 更新徽章
+    if(!ok || permState === 'denied'){
+      badge.className = 'badge badge-err';
+      badge.textContent = '不可用';
+    } else if(permState === 'granted'){
+      badge.className = 'badge badge-ok';
+      badge.textContent = '可用';
+    } else {
+      badge.className = 'badge badge-info';
+      badge.textContent = '待授权';
+    }
+    text.textContent = msgs.join(' · ');
+
+    if(diagItems.length > 0){
+      diag.classList.add('show');
+      diag.innerHTML = '<div class="diag-title">🔍 诊断信息</div><ul>' +
+        diagItems.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+    } else {
+      diag.classList.remove('show');
+    }
+
+    return permState;
+  }
+
+  // 页面加载时检测
+  checkMicSupport();
+
+  // 监听权限变化（用户在浏览器设置里修改后自动更新）
+  if(navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({name:'microphone'}).then(result => {
+      result.onchange = () => { checkMicSupport(); };
+    }).catch(()=>{});
+  }
+
+  // 页面重新可见时刷新权限状态（用户可能去设置里改完回来了）
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden){
+      refreshPermissionState().then(state => {
+        if(state === 'granted'){
+          showPermGuide(false);
+        }
+        checkMicSupport();
+      });
+    }
+  });
+
+  // ============================================================
+  // 麦克风变声逻辑
+  // ============================================================
+  let audioCtx = null;
+  let micStream = null;
+  let micSource = null;
+  let analyser = null;
+  let currentCleanup = null;
+  let meterRAF = null;
+  let micActive = false;
+
+  function getCtx(){
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  const micPresets = [
+    {id:'normal', name:'正常', emoji:'🗣️', build: buildNormal},
+    {id:'pitchUp', name:'升调', emoji:'🐿️', build: buildPitchUp},
+    {id:'pitchDown', name:'降调', emoji:'😈', build: buildPitchDown},
+    {id:'robot', name:'机器人', emoji:'🤖', build: buildRobot},
+    {id:'ring', name:'环形调制', emoji:'🌀', build: buildRingMod},
+    {id:'dist', name:'失真', emoji:'🔥', build: buildDistortion},
+    {id:'bit', name:'比特粉碎', emoji:'💾', build: buildBitcrusher},
+    {id:'echo', name:'回声', emoji:'🏔️', build: buildEcho},
+    {id:'vibrato', name:'颤音', emoji:'🌊', build: buildVibrato},
+    {id:'wah', name:'哇音', emoji:'🎷', build: buildWah},
+    {id:'telephone', name:'电话音', emoji:'☎️', build: buildTelephone},
+    {id:'underwater', name:'水下', emoji:'🐟', build: buildUnderwater},
+    {id:'tremolo', name:'振幅颤音', emoji:'📳', build: buildTremolo},
+    {id:'ghost', name:'幽灵', emoji:'👻', build: buildGhost},
+    {id:'megaphone', name:'扩音器', emoji:'📢', build: buildMegaphone},
+    {id:'chorus', name:'合唱', emoji:'🎵', build: buildChorus},
+    {id:'flanger', name:'镶边', emoji:'✈️', build: buildFlanger},
+    {id:'phase', name:'移相', emoji:'🌙', build: buildPhaser},
+    {id:'crush', name:'毁灭', emoji:'💥', build: buildDestroy},
+    {id:'alien', name:'外星人', emoji:'👽', build: buildAlien},
+  ];
+
+  function buildNormal(c,s,d){ s.connect(d); return ()=>{try{s.disconnect()}catch(e){}}; }
+
+  function buildPitchUp(c,s,d){
+    const dry=c.createGain(); dry.gain.value=0.4;
+    const wet=c.createGain(); wet.gain.value=0.8;
+    const d1=c.createDelay(0.1); d1.delayTime.value=0.015;
+    const d2=c.createDelay(0.1); d2.delayTime.value=0.03;
+    const fb=c.createGain(); fb.gain.value=0.3;
+    s.connect(d1); s.connect(d2);
+    d1.connect(fb); fb.connect(d2);
+    d1.connect(wet); d2.connect(wet); wet.connect(d);
+    s.connect(dry); dry.connect(d);
+    return ()=>{[s,dry,wet,d1,d2,fb].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildPitchDown(c,s,d){
+    const dry=c.createGain(); dry.gain.value=0.3;
+    const wet=c.createGain(); wet.gain.value=0.8;
+    const delay=c.createDelay(0.2); delay.delayTime.value=0.06;
+    const fb=c.createGain(); fb.gain.value=0.6;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800;
+    s.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
+    delay.connect(wet); wet.connect(d);
+    s.connect(dry); dry.connect(d);
+    return ()=>{[s,dry,wet,delay,fb,lp].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildRobot(c,s,d){
+    const ring=c.createGain(); ring.gain.value=0;
+    const osc=c.createOscillator(); osc.frequency.value=80; osc.type='sine';
+    osc.connect(ring.gain); osc.start();
+    const dry=c.createGain(); dry.gain.value=0.2;
+    s.connect(ring); ring.connect(d); s.connect(dry); dry.connect(d);
+    return ()=>{try{osc.stop()}catch(e){};[s,ring,dry,osc].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildRingMod(c,s,d){
+    const ring=c.createGain(); ring.gain.value=0;
+    const osc=c.createOscillator(); osc.frequency.value=300; osc.type='sine';
+    osc.connect(ring.gain); osc.start();
+    s.connect(ring); ring.connect(d);
+    return ()=>{try{osc.stop()}catch(e){};[s,ring,osc].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildDistortion(c,s,d){
+    const shaper=c.createWaveShaper();
+    const n=512, curve=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=(i/(n-1))*2-1; curve[i]=Math.tanh(x*20);}
+    shaper.curve=curve;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3000;
+    s.connect(shaper); shaper.connect(lp); lp.connect(d);
+    return ()=>{[s,shaper,lp].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildBitcrusher(c,s,d){
+    const bits=3, steps=Math.pow(2,bits);
+    const n=256, curve=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=(i/(n-1))*2-1; curve[i]=Math.round(x*steps)/steps;}
+    const shaper=c.createWaveShaper(); shaper.curve=curve;
+    s.connect(shaper); shaper.connect(d);
+    return ()=>{[s,shaper].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildEcho(c,s,d){
+    const delay=c.createDelay(1); delay.delayTime.value=0.25;
+    const fb=c.createGain(); fb.gain.value=0.5;
+    const wet=c.createGain(); wet.gain.value=0.6;
+    const dry=c.createGain(); dry.gain.value=0.6;
+    s.connect(delay); delay.connect(fb); fb.connect(delay);
+    delay.connect(wet); wet.connect(d); s.connect(dry); dry.connect(d);
+    return ()=>{[s,delay,fb,wet,dry].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildVibrato(c,s,d){
+    const delay=c.createDelay(0.05); delay.delayTime.value=0.005;
+    const lfo=c.createOscillator(); lfo.frequency.value=6;
+    const lfoG=c.createGain(); lfoG.gain.value=0.003;
+    lfo.connect(lfoG); lfoG.connect(delay.delayTime); lfo.start();
+    s.connect(delay); delay.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,delay,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildWah(c,s,d){
+    const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=6; bp.frequency.value=800;
+    const lfo=c.createOscillator(); lfo.frequency.value=3;
+    const lfoG=c.createGain(); lfoG.gain.value=500;
+    lfo.connect(lfoG); lfoG.connect(bp.frequency); lfo.start();
+    s.connect(bp); bp.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,bp,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildTelephone(c,s,d){
+    const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=500;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3000;
+    const peak=c.createBiquadFilter(); peak.type='peaking'; peak.frequency.value=1500; peak.gain.value=6;
+    s.connect(hp); hp.connect(lp); lp.connect(peak); peak.connect(d);
+    return ()=>{[s,hp,lp,peak].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildUnderwater(c,s,d){
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=500;
+    const lfo=c.createOscillator(); lfo.frequency.value=2;
+    const lfoG=c.createGain(); lfoG.gain.value=300;
+    lfo.connect(lfoG); lfoG.connect(lp.frequency); lfo.start();
+    s.connect(lp); lp.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,lp,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildTremolo(c,s,d){
+    const g=c.createGain();
+    const lfo=c.createOscillator(); lfo.frequency.value=10;
+    const lfoG=c.createGain(); lfoG.gain.value=0.5;
+    lfo.connect(lfoG); lfoG.connect(g.gain); lfo.start();
+    s.connect(g); g.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,g,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildGhost(c,s,d){
+    const delay=c.createDelay(0.5); delay.delayTime.value=0.2;
+    const fb=c.createGain(); fb.gain.value=0.7;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1000;
+    const lfo=c.createOscillator(); lfo.frequency.value=3;
+    const lfoG=c.createGain(); lfoG.gain.value=0.05;
+    lfo.connect(lfoG); lfoG.connect(delay.delayTime); lfo.start();
+    s.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
+    delay.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,delay,fb,lp,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildMegaphone(c,s,d){
+    const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1200; bp.Q.value=1.5;
+    const g=c.createGain(); g.gain.value=2;
+    const shaper=c.createWaveShaper();
+    const n=256, curve=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=(i/(n-1))*2-1; curve[i]=Math.tanh(x*5);}
+    shaper.curve=curve;
+    s.connect(bp); bp.connect(shaper); shaper.connect(g); g.connect(d);
+    return ()=>{[s,bp,shaper,g].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildChorus(c,s,d){
+    const d1=c.createDelay(0.05); d1.delayTime.value=0.02;
+    const d2=c.createDelay(0.05); d2.delayTime.value=0.04;
+    const lfo1=c.createOscillator(); lfo1.frequency.value=0.8;
+    const lfo2=c.createOscillator(); lfo2.frequency.value=1.2;
+    const g1=c.createGain(); g1.gain.value=0.005;
+    const g2=c.createGain(); g2.gain.value=0.005;
+    lfo1.connect(g1); g1.connect(d1.delayTime); lfo1.start();
+    lfo2.connect(g2); g2.connect(d2.delayTime); lfo2.start();
+    const wet=c.createGain(); wet.gain.value=0.7;
+    s.connect(d1); s.connect(d2); d1.connect(wet); d2.connect(wet); wet.connect(d);
+    return ()=>{try{lfo1.stop()}catch(e){};try{lfo2.stop()}catch(e){};[s,d1,d2,lfo1,lfo2,g1,g2,wet].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildFlanger(c,s,d){
+    const delay=c.createDelay(0.02); delay.delayTime.value=0.005;
+    const fb=c.createGain(); fb.gain.value=0.7;
+    const lfo=c.createOscillator(); lfo.frequency.value=0.5;
+    const lfoG=c.createGain(); lfoG.gain.value=0.004;
+    lfo.connect(lfoG); lfoG.connect(delay.delayTime); lfo.start();
+    s.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(d);
+    s.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,delay,fb,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildPhaser(c,s,d){
+    const ap1=c.createBiquadFilter(); ap1.type='allpass'; ap1.frequency.value=800;
+    const ap2=c.createBiquadFilter(); ap2.type='allpass'; ap2.frequency.value=1200;
+    const lfo=c.createOscillator(); lfo.frequency.value=0.6;
+    const lfoG=c.createGain(); lfoG.gain.value=600;
+    lfo.connect(lfoG); lfoG.connect(ap1.frequency); lfoG.connect(ap2.frequency); lfo.start();
+    s.connect(ap1); ap1.connect(ap2); ap2.connect(d); s.connect(d);
+    return ()=>{try{lfo.stop()}catch(e){};[s,ap1,ap2,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildDestroy(c,s,d){
+    const shaper=c.createWaveShaper();
+    const n=1024, curve=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=(i/(n-1))*2-1; curve[i]=Math.tanh(x*50);}
+    shaper.curve=curve;
+    const delay=c.createDelay(0.1); delay.delayTime.value=0.03;
+    const fb=c.createGain(); fb.gain.value=0.8;
+    s.connect(shaper); shaper.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(d);
+    return ()=>{[s,shaper,delay,fb].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function buildAlien(c,s,d){
+    const ring=c.createGain(); ring.gain.value=0;
+    const osc=c.createOscillator(); osc.frequency.value=500; osc.type='sine';
+    osc.connect(ring.gain); osc.start();
+    const lfo=c.createOscillator(); lfo.frequency.value=4;
+    const lfoG=c.createGain(); lfoG.gain.value=300;
+    lfo.connect(lfoG); lfoG.connect(osc.frequency); lfo.start();
+    s.connect(ring); ring.connect(d);
+    return ()=>{try{osc.stop()}catch(e){};try{lfo.stop()}catch(e){};[s,ring,osc,lfo,lfoG].forEach(n=>{try{n.disconnect()}catch(e){}})};
+  }
+
+  function renderMic(){
+    const g = $('micGrid');
+    g.innerHTML = '';
+    micPresets.forEach(p=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.id = p.id;
+      card.innerHTML = `<div class="emoji">${p.emoji}</div><div class="name">${p.name}</div>`;
+      card.onclick = ()=>{
+        document.querySelectorAll('#micGrid .card').forEach(c=>c.classList.remove('active'));
+        card.classList.add('active');
+        if(micActive) applyMicEffect(p);
+      };
+      g.appendChild(card);
+    });
+    g.firstChild.classList.add('active');
+  }
+
+  let currentMicPreset = micPresets[0];
+
+  function applyMicEffect(preset){
+    if(!micSource || !audioCtx) return;
+    if(currentCleanup){ currentCleanup(); currentCleanup = null; }
+    try{ micSource.disconnect(); }catch(e){}
+    currentMicPreset = preset;
+    currentCleanup = preset.build(audioCtx, micSource, audioCtx.destination);
+    if(analyser){
+      try{ micSource.connect(analyser); }catch(e){}
+    }
+  }
+
+  async function startMic(){
+    if(micActive) return;
+
+    if(location.protocol === 'file:'){
+      $('micStatus').classList.add('err');
+      $('micStatusText').textContent = '❌ file:// 协议无法使用麦克风，请用本地服务器';
+      showPermGuide(true,
+        '你正在用 <code>file://</code> 协议打开页面，浏览器禁止麦克风访问。',
+        '<strong>解决方案：</strong><br>1. 用 VS Code 的 Live Server 插件打开<br>2. 命令行运行 <code>python -m http.server</code> 后访问 <code>http://localhost:8000</code><br>3. 部署到 <code>https://</code> 网站'
+      );
+      return;
+    }
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      $('micStatus').classList.add('err');
+      $('micStatusText').textContent = '❌ 浏览器不支持麦克风 API';
+      return;
+    }
+
+    $('micBtn').disabled = true;
+    $('micStatus').classList.remove('err');
+    $('micStatusText').textContent = '正在请求麦克风权限…';
+
+    try{
+      const ctx = getCtx();
+      micStream = await navigator.mediaDevices.getUserMedia({audio:{
+        echoCancellation:false, noiseSuppression:false, autoGainControl:false
+      }});
+      micSource = ctx.createMediaStreamSource(micStream);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      micSource.connect(analyser);
+      applyMicEffect(currentMicPreset);
+      micActive = true;
+      $('micBtn').disabled = true;
+      $('micStopBtn').disabled = false;
+      $('micStatus').classList.add('on');
+      $('micStatus').classList.remove('err');
+      $('micStatusText').textContent = '✅ 麦克风已开启 · 请说话，点击卡片切换效果';
+      showPermGuide(false);
+      $('micBadge').className = 'badge badge-ok';
+      $('micBadge').textContent = '已开启';
+      startMeter();
+    }catch(e){
+      $('micBtn').disabled = false;
+      $('micStatus').classList.add('err');
+      let errMsg = '';
+      let diagItems = [];
+      switch(e.name){
+        case 'NotAllowedError':
+        case 'PermissionDeniedError':
+          errMsg = '❌ 麦克风权限被拒绝';
+          showPermGuide(true,
+            '麦克风权限已被<strong>拒绝</strong>。请按以下指引手动修改。',
+            '<strong>方法一：</strong>点击地址栏左侧的 🔒 锁图标 → 「网站设置」→ 找到「麦克风」→ 改为「允许」→ 刷新页面。<br>' +
+            '<strong>方法二：</strong>点击下方「打开麦克风权限设置」按钮，在设置页搜索「麦克风」，找到本网站并改为允许。'
+          );
+          diagItems.push('🔒 浏览器拒绝了麦克风权限请求。');
+          diagItems.push('点击地址栏左侧的 🔒 锁图标 → 网站设置 → 麦克风 → 允许，然后刷新页面。');
+          break;
+        case 'NotFoundError':
+        case 'DevicesNotFoundError':
+          errMsg = '❌ 未检测到麦克风设备';
+          diagItems.push('🎤 系统没有找到可用的麦克风。请检查硬件连接或系统声音设置。');
+          break;
+        case 'NotReadableError':
+        case 'TrackStartError':
+          errMsg = '❌ 麦克风被占用或无法读取';
+          diagItems.push('另一个应用或标签页可能正在使用麦克风。请关闭其他使用麦克风的程序后重试。');
+          break;
+        case 'OverconstrainedError':
+          errMsg = '❌ 麦克风约束不满足';
+          diagItems.push('请求的音频参数不被设备支持，请尝试普通麦克风。');
+          break;
+        case 'SecurityError':
+          errMsg = '❌ 安全错误';
+          diagItems.push('当前上下文不安全，必须使用 https:// 或 localhost。');
+          break;
+        default:
+          errMsg = '❌ 开启失败: ' + e.message;
+          diagItems.push('错误名称：<code>' + e.name + '</code>');
+          diagItems.push('错误信息：' + e.message);
+          diagItems.push('请检查浏览器控制台（F12）获取更多信息。');
+      }
+      $('micStatusText').textContent = errMsg;
+      if(diagItems.length > 0){
+        const diag = $('micDiag');
+        diag.classList.add('show');
+        diag.innerHTML = '<div class="diag-title">🔍 诊断信息</div><ul>' +
+          diagItems.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+      }
+    }
+  }
+
+  function stopMic(){
+    if(micStream){
+      micStream.getTracks().forEach(t=>t.stop());
+      micStream = null;
+    }
+    if(currentCleanup){ currentCleanup(); currentCleanup = null; }
+    try{ if(micSource) micSource.disconnect(); }catch(e){}
+    if(meterRAF) cancelAnimationFrame(meterRAF);
+    $('meter').style.width = '0%';
+    micActive = false;
+    $('micBtn').disabled = false;
+    $('micStopBtn').disabled = true;
+    $('micStatus').classList.remove('on');
+    $('micStatus').classList.remove('err');
+    $('micStatusText').textContent = '麦克风已关闭';
+    $('micBadge').className = 'badge badge-ok';
+    $('micBadge').textContent = '可用';
+  }
+
+  function startMeter(){
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    function loop(){
+      if(!micActive){ return; }
+      analyser.getByteFrequencyData(data);
+      let sum = 0;
+      for(let i=0;i<data.length;i++) sum += data[i];
+      const avg = sum / data.length;
+      $('meter').style.width = Math.min(100, avg*1.5) + '%';
+      meterRAF = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  $('micBtn').onclick = startMic;
+  $('micStopBtn').onclick = stopMic;
+
+  // ============================================================
+  // TTS 文字朗读
+  // ============================================================
+  const synth = window.speechSynthesis;
+  const ttsPresets = [
+    {id:'normal', name:'正常', emoji:'🗣️', rate:1, pitch:1, vol:1},
+    {id:'chip', name:'花栗鼠', emoji:'🐿️', rate:1.5, pitch:2, vol:1},
+    {id:'demon', name:'恶魔', emoji:'😈', rate:0.5, pitch:0.1, vol:1},
+    {id:'robot', name:'机器人', emoji:'🤖', rate:0.9, pitch:1, vol:1},
+    {id:'duck', name:'唐老鸭', emoji:'🦆', rate:1.1, pitch:1.7, vol:1},
+    {id:'fast', name:'快嘴', emoji:'⚡', rate:2.5, pitch:1.2, vol:1},
+    {id:'slow', name:'慢吞吞', emoji:'🐢', rate:0.3, pitch:0.9, vol:1},
+    {id:'drunk', name:'醉汉', emoji:'🍻', rate:0.7, pitch:0.6, vol:0.9},
+    {id:'squeal', name:'尖叫鸡', emoji:'🐔', rate:1.8, pitch:2, vol:1},
+    {id:'ghost', name:'幽灵', emoji:'👻', rate:0.6, pitch:1.5, vol:0.7},
+    {id:'giant', name:'巨怪', emoji:'👹', rate:0.4, pitch:0.1, vol:1},
+    {id:'baby', name:'婴儿', emoji:'👶', rate:1.3, pitch:2, vol:0.9},
+    {id:'alien', name:'外星人', emoji:'👽', rate:1, pitch:1.5, vol:1},
+    {id:'radio', name:'老收音机', emoji:'📻', rate:0.95,pitch:1, vol:0.8},
+    {id:'under', name:'水下', emoji:'🌊', rate:0.7, pitch:0.8, vol:0.8},
+    {id:'glitch', name:'故障', emoji:'💾', rate:1.1, pitch:1, vol:1},
+    {id:'whisper', name:'耳语', emoji:'🤫', rate:0.8, pitch:1, vol:0.3},
+    {id:'chaos', name:'混沌', emoji:'💥', rate:1.5, pitch:0.3, vol:1},
+    {id:'pop', name:'放屁', emoji:'💨', rate:0.9, pitch:0.5, vol:1},
+    {id:'trill', name:'颤舌', emoji:'👅', rate:1, pitch:1.2, vol:1},
+    {id:'mega', name:'超级怪', emoji:'🌀', rate:1.2, pitch:0.4, vol:1},
+  ];
+
+  let ttsActiveId = 'normal';
+
+  function renderTTS(){
+    const g = $('ttsGrid');
+    g.innerHTML = '';
+    ttsPresets.forEach(p=>{
+      const card = document.createElement('div');
+      card.className = 'card' + (p.id===ttsActiveId?' active':'');
+      card.dataset.id = p.id;
+      card.innerHTML = `<div class="emoji">${p.emoji}</div><div class="name">${p.name}</div>`;
+      card.onclick = ()=>{
+        ttsActiveId = p.id;
+        document.querySelectorAll('#ttsGrid .card').forEach(c=>c.classList.toggle('active', c.dataset.id===p.id));
+      };
+      g.appendChild(card);
+    });
+  }
+
+  function detectLang(text){
+    if(/[\u4e00-\u9fff]/.test(text)) return 'zh-CN';
+    if(/[\u3040-\u30ff]/.test(text)) return 'ja';
+    if(/[\uac00-\ud7af]/.test(text)) return 'ko';
+    if(/[\u0600-\u06ff]/.test(text)) return 'ar';
+    if(/[\u0400-\u04ff]/.test(text)) return 'ru';
+    return 'en';
+  }
+
+  async function translate(text, targetLang){
+    const src = detectLang(text);
+    const pair = `${src}|${targetLang}`;
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
+    try{
+      const res = await fetch(url);
+      const data = await res.json();
+      if(data.responseStatus === 200 && data.responseData && data.responseData.translatedText){
+        return data.responseData.translatedText;
+      }
+      if(data.matches && data.matches.length > 0 && data.matches[0].translation){
+        return data.matches[0].translation;
+      }
+      return null;
+    }catch(e){ return null; }
+  }
+
+  async function ttsSpeak(){
+    if(!synth) return;
+    if(synth.speaking) synth.cancel();
+    const text = $('ttsText').value.trim();
+    if(!text){ $('ttsStatusText').textContent = '请输入文字'; return; }
+
+    const targetLang = $('targetLang').value;
+    const srcLang = detectLang(text);
+    const preset = ttsPresets.find(x=>x.id===ttsActiveId) || ttsPresets[0];
+
+    $('ttsStatus').classList.add('on');
+    $('ttsStatusText').textContent = '正在翻译…';
+    $('speakBtn').disabled = true;
+
+    let finalText = text;
+    if(srcLang !== targetLang){
+      const translated = await translate(text, targetLang);
+      if(translated) finalText = translated;
+    }
+
+    $('ttsStatusText').textContent = `正在朗读: ${preset.name} ${preset.emoji}`;
+
+    const u = new SpeechSynthesisUtterance(finalText);
+    u.lang = targetLang;
+    u.rate = preset.rate;
+    u.pitch = preset.pitch;
+    u.volume = preset.vol;
+    const voices = synth.getVoices();
+    const voice = voices.find(v=>v.lang===targetLang)
+               || voices.find(v=>v.lang.startsWith(targetLang.split('-')[0]))
+               || voices[0];
+    if(voice) u.voice = voice;
+
+    u.onstart = ()=>{ $('ttsStatus').classList.add('on'); $('speakBtn').disabled = false; };
+    u.onend = ()=>{ $('ttsStatus').classList.remove('on'); $('ttsStatusText').textContent = '朗读结束'; $('speakBtn').disabled = false; };
+    u.onerror = ()=>{ $('ttsStatus').classList.remove('on'); $('ttsStatusText').textContent = '朗读出错'; $('speakBtn').disabled = false; };
+    synth.speak(u);
+  }
+
+  $('speakBtn').onclick = ttsSpeak;
+  $('stopBtn').onclick = ()=>{
+    if(synth.speaking) synth.cancel();
+    $('ttsStatus').classList.remove('on');
+    $('ttsStatusText').textContent = '已停止';
+    $('speakBtn').disabled = false;
+  };
+
+  if(synth.getVoices().length===0) synth.onvoiceschanged = ()=>{};
+
+  renderMic();
+  renderTTS();
+})();
+</script>
+</body>
+</html>
